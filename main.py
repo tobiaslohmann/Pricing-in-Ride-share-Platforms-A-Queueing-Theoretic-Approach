@@ -14,7 +14,7 @@ mu_0 = 4
 gamma = 0.0000001
 tau = 0.0000001
 
-# Theta in the large market limit: n goes to infinity
+# Theta in the  large market limit: n goes to infinity
 theta_0 = 3
 n = 10000000000000000000
 theta = theta_0 * np.log(n)
