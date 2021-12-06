@@ -37,8 +37,6 @@ def main(mu_0, q_exit, bigLambda, gamma, tau, shape, n, m, p_max):
             # Delete rows with all 0 - needed for Time Analysis only
             df = df.loc[~(df == 0).all(axis=1)]
             df.drop(df.tail(1).index, inplace=True)
-            # Iterating
-            j = j + 1
 
         # Post-processing
         length = sum(leng)/len(leng)

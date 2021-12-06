@@ -26,10 +26,10 @@ shape = 2
 p_max = 5.1
 
 ### Simulating n matches of passengers and drivers in the system ###
-n = 3300
+n = 50
 
 ### Building the average of m occurences for every price p
-m = 10
+m = 1
 
 if __name__ == '__main__':
     ### Static | Large market limit | Theoretic
