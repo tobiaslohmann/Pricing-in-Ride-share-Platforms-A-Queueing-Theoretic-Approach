@@ -68,7 +68,7 @@ def reservation_earnings_distribution_eta(earningsPerTime, shape):
 def Revenue_dynamic(p_low, p, p_bal, mu_0, q_exit, tau, lambda_0, shape, gamma, theta):
     lam = lambda_dynamic(p_low, p, p_bal, mu_0, q_exit, tau, gamma, lambda_0, shape)
     eta = eta_(p_low, p, lam, mu_0, theta, shape)
-    if p_low > p:
+    if p_low >= p:
         return (1 - gamma) * lam * p_low
     elif p_low < p <= p_bal:
         return (1 - gamma) * lam * p
