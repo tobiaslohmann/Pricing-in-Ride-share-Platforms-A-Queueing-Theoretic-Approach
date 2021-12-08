@@ -19,36 +19,36 @@ def passengerPriceResponse(price, shape):
 
 ### Driver ###
 # Normalized driver arrival rate --- large market limit ---
-def lamlarge(price, gamma, tau, mu_0, bigLambda, q_exit, shape):
+def lambda_static(price, gamma, tau, mu_0, lambda_0, q_exit, shape):
     m = mu(price, mu_0, shape)
-    lam = bigLambda / q_exit * reservationEarningsDistr2(gamma / tau * price, shape)
+    lam = lambda_0 / q_exit * reservation_earnings_distribution_eta(gamma / tau * price, shape)
     return min(lam, m)
 
 
-def lam2(price, gamma, tau, bigLambda, q_exit, shape, idle):
-    return bigLambda / q_exit * reservationEarningsDistr2((gamma * price) / (tau + idle), shape)
+def lambda_gamma(price, gamma, tau, lambda_0, q_exit, shape, idle):
+    return lambda_0 / q_exit * reservation_earnings_distribution_eta((gamma * price) / (tau + idle), shape)
 
 
-def dynamicLam(plow, phigh, pbal, mu_0, q_exit, tau, gamma, bigLambda, shape):
-    if plow > pbal:
-        return mu_0 * passengerPriceResponse(plow, shape)
-    elif phigh < pbal:
-        if phigh < plow:
-            return lam2(plow, gamma, tau, bigLambda, q_exit, shape, 0)
+def lambda_dynamic(p_low, p_high, p_bal, mu_0, q_exit, tau, gamma, lambda_0, shape):
+    if p_low > p_bal:
+        return mu_0 * passengerPriceResponse(p_low, shape)
+    elif p_high < p_bal:
+        if p_high < p_low:
+            return lambda_gamma(p_low, gamma, tau, lambda_0, q_exit, shape, 0)
         else:
-            return lam2(phigh, gamma, tau, bigLambda, q_exit, shape, 0)
-    elif plow < pbal < phigh:
-        return lamThreshold(plow, phigh, tau, mu_0, gamma, bigLambda, q_exit, shape)
+            return lambda_gamma(p_high, gamma, tau, lambda_0, q_exit, shape, 0)
+    elif p_low < p_bal < p_high:
+        return lambda_threshold(p_low, p_high, tau, mu_0, gamma, lambda_0, q_exit, shape)
 
 
-def lamThreshold(plow, phigh, tau, mu_0, gamma, bigLambda, q_exit, shape):
-    phi_high = 1 / passengerPriceResponse(phigh, shape)
-    phi_low = 1 / passengerPriceResponse(plow, shape)
-    fac1 = bigLambda / q_exit
+def lambda_threshold(p_low, p_high, tau, mu_0, gamma, lambda_0, q_exit, shape):
+    phi_high = 1 / passengerPriceResponse(p_high, shape)
+    phi_low = 1 / passengerPriceResponse(p_low, shape)
+    fac1 = lambda_0 / q_exit
     fac2 = gamma / tau
     for i in np.arange(0.01, 10, 0.01):
-        x = fac2 * ((plow * (phi_high - mu_0 / i) + phigh * (mu_0 / i - phi_low)) / (phi_high - phi_low))
-        desc = fac1 * reservationEarningsDistr2(x, shape)
+        x = fac2 * ((p_low * (phi_high - mu_0 / i) + p_high * (mu_0 / i - phi_low)) / (phi_high - phi_low))
+        desc = fac1 * reservation_earnings_distribution_eta(x, shape)
         if desc != 0 and np.absolute((i - desc) / i) <= 0.01:
             return desc
     return 1
@@ -56,48 +56,37 @@ def lamThreshold(plow, phigh, tau, mu_0, gamma, bigLambda, q_exit, shape):
 
 ### Driver ###
 # Reservation-earnings distribution
-def reservationEarningsDistr(gamma, tau, idle, price, shape):
+def reservation_earnings_distribution(gamma, tau, idle, price, shape):
     return scipy.stats.gamma.cdf((gamma * price) / (tau + idle), shape)
 
 
-def reservationEarningsDistr2(earningsPerTime, shape):
+def reservation_earnings_distribution_eta(earningsPerTime, shape):
     return scipy.stats.gamma.cdf(earningsPerTime, shape)
 
 
 ### Revenue ###
-def dynamicRevenue(plow, p, p_bal, mu_0, q_exit, tau, bigLambda, shape, gamma, theta):
-    lam = dynamicLam(plow, p, p_bal, mu_0, q_exit, tau, gamma, bigLambda, shape)
-    eta = eta_(plow, p, lam, mu_0, theta, shape)
-    if plow > p:
-        return (1 - gamma) * lam * plow
-    elif plow < p <= p_bal:
+def Revenue_dynamic(p_low, p, p_bal, mu_0, q_exit, tau, lambda_0, shape, gamma, theta):
+    lam = lambda_dynamic(p_low, p, p_bal, mu_0, q_exit, tau, gamma, lambda_0, shape)
+    eta = eta_(p_low, p, lam, mu_0, theta, shape)
+    if p_low > p:
+        return (1 - gamma) * lam * p_low
+    elif p_low < p <= p_bal:
         return (1 - gamma) * lam * p
     else:
         return (1 - gamma) * lam * eta
 
-
-def dynamicMultiplier(plow, p, p_bal, lam, mu_0, shape, gamma, theta):
-    eta = eta_(plow, p, lam, mu_0, theta, shape)
-    if plow > p:
-        return (1 - gamma) * plow
-    elif plow < p <= p_bal:
-        return (1 - gamma) * p
-    else:
-        return (1 - gamma) * eta
-
-
 ### Prices ###
 # Equation 8
-def balancePriceStaticLarge(mu_0, gamma, tau, q_exit, bigLambda, shape):
+def balance_price(mu_0, gamma, tau, q_exit, lambda_0, shape):
     for i in np.arange(1, 10, 0.001):
         mu = mu_0 * passengerPriceResponse(i, shape)
-        lam = (bigLambda / q_exit) * reservationEarningsDistr(gamma, tau, 0, i, shape)
+        lam = (lambda_0 / q_exit) * reservation_earnings_distribution(gamma, tau, 0, i, shape)
         if mu != 0 and np.absolute((mu - lam) / mu) <= 0.001:
             return i
     return 0
 
 
-def demandOptimalPrice(shape):
+def optimal_price(shape):
     opt = 0
     for i in np.arange(0.01, 10, 0.001):
         prod = i * passengerPriceResponse(i, shape)
@@ -109,29 +98,29 @@ def demandOptimalPrice(shape):
 
 
 # Eta
-def eta_(plow, phigh, lam, mu_0, theta, shape):
-    rho_l = 1 / passengerPriceResponse(plow, shape)
-    rho_h = 1 / passengerPriceResponse(phigh, shape)
+def eta_(p_low, p_high, lam, mu_0, theta, shape):
+    rho_l = 1 / passengerPriceResponse(p_low, shape)
+    rho_h = 1 / passengerPriceResponse(p_high, shape)
     sig = lam / mu_0
-    return (((sig * rho_h) ** theta - 1) * (1 - sig * rho_l) * phigh + (sig * rho_h - 1) * (
-            (sig * rho_h) ** theta) * plow) / (
+    return (((sig * rho_h) ** theta - 1) * (1 - sig * rho_l) * p_high + (sig * rho_h - 1) * (
+            (sig * rho_h) ** theta) * p_low) / (
                    (sig * rho_h - sig * rho_l) * (sig * rho_h) ** theta - (1 - sig * rho_l))
 
 
 ### PLOTS ###
 ### Static large market limit | Theoretic
-def plotStaticLambda(mu_0, gamma, tau, q_exit, bigLambda, shape, p_bal, pd_opt):
+def plotStaticLambda(mu_0, gamma, tau, q_exit, lambda_0, shape, p_bal, pd_opt):
     x_end = 5
     y_end = 1.4
     x = np.linspace(0, x_end, 1000)
-    y1 = (bigLambda / q_exit) * reservationEarningsDistr(gamma, tau, 0, x, shape)
+    y1 = (lambda_0 / q_exit) * reservation_earnings_distribution(gamma, tau, 0, x, shape)
     y2 = mu(x, mu_0, shape)
     plt.plot(x, y1, color='coral', label="$\\lambda$")
     plt.plot(x, y2, color='pink', label='$\\mu$')
     y3 = np.zeros(1000)
     j = 0
     for i in x:
-        y3[j] = lamlarge(i, gamma, tau, mu_0, bigLambda, q_exit, shape)
+        y3[j] = lambda_static(i, gamma, tau, mu_0, lambda_0, q_exit, shape)
         j = j + 1
     plt.plot(x, y3, color='green', linestyle='dotted', linewidth=3.0, label="$\\lambda_{fin}$")
     plt.vlines(p_bal, 0, y_end, colors='black', linestyles='solid', label='Balance Price')
@@ -147,14 +136,14 @@ def plotStaticLambda(mu_0, gamma, tau, q_exit, bigLambda, shape, p_bal, pd_opt):
     plt.show()
 
 
-def plotStaticRevenue(mu_0, gamma, tau, q_exit, bigLambda, shape, p_bal, pd_opt):
+def plotStaticRevenue(mu_0, gamma, tau, q_exit, lambda_0, shape, p_bal, pd_opt):
     x_end = 5
     y_end = 3.2
     x = np.linspace(0, x_end, 1000)
     y1 = np.zeros(1000)
     j = 0
     for i in x:
-        y1[j] = lamlarge(i, gamma, tau, mu_0, bigLambda, q_exit, shape) * i * (1 - gamma)
+        y1[j] = lambda_static(i, gamma, tau, mu_0, lambda_0, q_exit, shape) * i * (1 - gamma)
         j = j + 1
     plt.plot(x, y1, color='coral', label="Revenue")
     plt.vlines(p_bal, 0, y_end, colors='black', linestyles='solid', label='$p_{bal}$')
@@ -171,7 +160,7 @@ def plotStaticRevenue(mu_0, gamma, tau, q_exit, bigLambda, shape, p_bal, pd_opt)
 
 
 ### Static large market limit | Agent
-def plotAgentLam(df_result, p_max):
+def plotStaticAgentLambda(df_result, p_max):
     plt.plot(df_result['Price'], df_result['Driver arrival agent based'], color='red', label="$\\lambda_{agent}$")
     plt.plot(df_result['Price'], df_result['Driver arrival paper'], color='green', linestyle='dashed',
              label="$\\lambda_{theoretic}$")
@@ -186,7 +175,7 @@ def plotAgentLam(df_result, p_max):
     plt.show()
 
 
-def plotAgentRev(df_result, p_max):
+def plotStaticAgentRevenue(df_result, p_max):
     plt.plot(df_result['Price'], df_result['Revenue agent based per ride'], color='red', label="$Revenue_{agent}$")
     plt.plot(df_result['Price'], df_result['Revenue paper'], color='green', linestyle='dashed',
              label="$Revenue_{theoretic}$")
@@ -201,10 +190,10 @@ def plotAgentRev(df_result, p_max):
     plt.show()
 
 
-### Dynamic large amrket limit | Agent
-def plotAgentDynLam(df_result, p_max):
-    plt.plot(df_result['Price'], df_result['Driver arrival agent based'], color='red', label="$\\lambda_{agent}$")
-    plt.plot(df_result['Price'], df_result['Driver arrival paper'], color='green', linestyle='dashed',
+### Dynamic large market limit | Agent
+def plotDynamicAgentLambda(df_result, p_max):
+    plt.plot(df_result.index, df_result['Driver arrival rate | Agent'], color='red', label="$\\lambda_{agent}$")
+    plt.plot(df_result.index, df_result['Driver arrival rate | Theoretic'], color='green', linestyle='dashed',
              label="$\\lambda_{theoretic}$")
     plt.grid()
     plt.xlim(0, p_max)
@@ -213,13 +202,13 @@ def plotAgentDynLam(df_result, p_max):
     plt.ylabel('$\\lim_{n\\to\\infty} \\lambda$(n,p)', fontsize=12)
     plt.legend()
     plt.title("Dynamic Large Market Limit | Agent: \n""$\\lambda$(n,p) vs. p")
-    plt.savefig("Plots/Dynamic_Agent_lam")
+    plt.savefig("Dynamic/Dynamic_Agent_Lambda")
     plt.show()
 
 
-def plotAgentDynRev(df_result, p_max):
-    plt.plot(df_result['Price'], df_result['Revenue agent based per ride'], color='red', label="$Revenue_{agent}$")
-    plt.plot(df_result['Price'], df_result['Revenue paper'], color='green', linestyle='dashed',
+def plotDynamicAgentRevenue(df_result, p_max):
+    plt.plot(df_result.index, df_result['Revenue | Agent'], color='red', label="$Revenue_{agent}$")
+    plt.plot(df_result.index, df_result['Revenue | Theoretic'], color='green', linestyle='dashed',
              label="$Revenue_{theoretic}$")
     plt.grid()
     plt.xlim(0, p_max)
@@ -228,29 +217,28 @@ def plotAgentDynRev(df_result, p_max):
     plt.ylabel('Revenue')
     plt.legend()
     plt.title("Dynamic Large Market Limit | Agent: \n E[$\\Pi$(p)] vs. p, $\\gamma$=0")
-    plt.savefig("Plots/Dynamic_Agent_Revenue_avg")
+    plt.savefig("Dynamic/Dynamic_Agent_Revenue")
     plt.show()
 
-
 ### Dynamic single threshold pricing vs. static pricing | Theoretic
-def plotPriceLambdaDyn(mu_0, gamma, tau, q_exit, bigLambda, shape, p_bal, plow):
+def plotPriceLambdaDyn(mu_0, gamma, tau, q_exit, lambda_0, shape, p_bal, p_low):
     x_end = 5
     y_end = 1.6
     x = np.linspace(0, x_end, 1000)
     y1 = np.zeros(1000)
     j = 0
     for i in x:
-        y1[j] = dynamicLam(plow, i, p_bal, mu_0, q_exit, tau, gamma, bigLambda, shape)
+        y1[j] = lambda_dynamic(p_low, i, p_bal, mu_0, q_exit, tau, gamma, lambda_0, shape)
         j = j + 1
     y2 = np.zeros(1000)
     j = 0
     for i in x:
-        y2[j] = lamlarge(i, gamma, tau, mu_0, bigLambda, q_exit, shape)
+        y2[j] = lambda_static(i, gamma, tau, mu_0, lambda_0, q_exit, shape)
         j = j + 1
     plt.plot(x, y2, color='green', label="Static pricing")
     plt.plot(x, y1, color='red', label='Dynamic pricing')
     plt.vlines(p_bal, 0, y_end, colors='black', linestyles='solid', label='$p_{bal}$')
-    plt.vlines(plow, 0, y_end, colors='yellow', linestyles='solid', label='$p_{low}$')
+    plt.vlines(p_low, 0, y_end, colors='yellow', linestyles='solid', label='$p_{low}$')
     plt.grid()
     plt.xlim(0, x_end)
     plt.ylim(0, y_end)
@@ -262,25 +250,24 @@ def plotPriceLambdaDyn(mu_0, gamma, tau, q_exit, bigLambda, shape, p_bal, plow):
     plt.show()
 
 
-def plotRevenueDynStat(mu_0, gamma, tau, q_exit, bigLambda, shape, p_bal, plow, theta):
+def plotRevenueDynStat(mu_0, gamma, tau, q_exit, lambda_0, shape, p_bal, p_low, theta):
     x_end = 5
     y_end = 3.2
     x = np.linspace(0, x_end, 1000)
     y1 = np.zeros(1000)
     j = 0
     for i in x:
-        y1[j] = lamlarge(i, gamma, tau, mu_0, bigLambda, q_exit, shape) * i * (1 - gamma)
+        y1[j] = lambda_static(i, gamma, tau, mu_0, lambda_0, q_exit, shape) * i * (1 - gamma)
         j = j + 1
     plt.plot(x, y1, color='green', label="Static pricing")
     y3 = np.zeros(1000)
     j = 0
     for i in x:
-        y3[j] = dynamicRevenue(plow, i, p_bal, mu_0, q_exit, tau, bigLambda, shape, gamma, theta)
-        y3[j] = dynamicRevenue(plow, i, p_bal, mu_0, q_exit, tau, bigLambda, shape, gamma, theta)
+        y3[j] = Revenue_dynamic(p_low, i, p_bal, mu_0, q_exit, tau, lambda_0, shape, gamma, theta)
         j = j + 1
     plt.plot(x, y3, color='red', label="Dynamic Pricing")
     plt.vlines(p_bal, 0, y_end, colors='black', linestyles='solid', label='$p_{bal}$')
-    plt.vlines(plow, 0, y_end, colors='yellow', label='$p_{low}$')
+    plt.vlines(p_low, 0, y_end, colors='yellow', label='$p_{low}$')
     plt.grid()
     plt.xlim(0, x_end)
     plt.ylim(0, y_end)
