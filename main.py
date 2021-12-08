@@ -19,7 +19,7 @@ shape = 2                       # Shape GAMMA distribution
 p_max = 5.1                     # Upper price limit for simulation
 n = 3300                        # Static Pricing | Simulating n matches of passengers and drivers in the system
 m = 2                           # Building the average of m occurrences for every price p
-time = 5000                   # Dynamic Pricing | Time simulation of dynamic pricing
+time = 5000                     # Dynamic Pricing | Time simulation of dynamic pricing
 
 if __name__ == '__main__':
     ### Static | Large market limit | Theoretic
