@@ -2,11 +2,11 @@
 The computational analysis of the research paper: [Pricing in Ride-share Platforms: A Queueing-Theoretic Approach](http://www.columbia.edu/~ww2040/8100F16/Riquelme-Johari-Banerjee.pdf)
 
 ## Installation
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install packages:
 ```bash
 pip install numpy
-pip install pandas
 pip install matplotlib
+pip install pandas
 pip install scipy
 ```
 
@@ -32,7 +32,6 @@ if result_df.loc[i, "start_time"] > simTime:
 ```
 
 ## Dynamic Pricing
-
 ### Theoretic
 Run [dynamic_theoretic.main()](dynamic_theoretic.py) from [main.py](main.py).
 ### Agent
