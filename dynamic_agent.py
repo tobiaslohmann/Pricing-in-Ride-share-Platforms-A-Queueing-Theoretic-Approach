@@ -19,9 +19,6 @@ def main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta, m, p_max, time):
     df_result = pd.DataFrame(columns=column_names)
     for i in np.arange(0.1, p_max, 0.1):
         p_high = i
-        # To get exact information for balance price
-        if i == np.round(2.2,1):
-            p_high = p_bal
         # if p_high and p_low arr smaller than p_bal --> higher price is set by platform
         if p_high < p_low:
             p_high = p_low
@@ -59,11 +56,11 @@ def main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta, m, p_max, time):
             df_result.loc[j, "Time"] = s.clock
             df_result.loc[j, "Drivers arrived to system"] = s.arrivedDrivers
             df_result.loc[j, "Driver arrival rate | Agent"] = s.arrivedDrivers / s.clock
-            df_result.loc[j, "Driver arrival rate | Theoretic"] = Model_Queue.lambda_dynamic(p_low, p_high, p_bal, mu_0,
+            df_result.loc[j, "Driver arrival rate | Theoretic"] = Model_Queue.lambda_dynamic(p_low, i, p_bal, mu_0,
                                                                                              q_exit, tau, gamma,
                                                                                              lambda_0, shape)
             df_result.loc[j, "Expected earnings per ride | Agent"] = np.average(df['price'])
-            df_result.loc[j, "Expected earnings per ride | Theoretic"] = Model_Queue.Revenue_dynamic(p_low, p_high, p_bal,
+            df_result.loc[j, "Expected earnings per ride | Theoretic"] = Model_Queue.Revenue_dynamic(p_low, i, p_bal,
                                                                                                      mu_0, q_exit, tau,
                                                                                                      lambda_0, shape,
                                                                                                      gamma, theta) / \
