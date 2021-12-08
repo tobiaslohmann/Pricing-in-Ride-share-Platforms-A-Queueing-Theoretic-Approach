@@ -16,7 +16,7 @@ def main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta, m, p_max, time):
     column_names = ["Price i", "Time", "Drivers arrived to system", "Driver arrival rate | Agent",
                     "Driver arrival rate | Theoretic", "Expected earnings per ride | Agent",
                     "Expected earnings per ride | Theoretic", "Revenue | Agent", "Revenue | Theoretic"]
-    df_result = pd.DataFrame(columns=column_names)
+    df_result = pd.DataFrame(columns=column_names, dtype=float)
     for i in np.arange(0.1, p_max, 0.1):
         p_high = i
         # if p_high and p_low arr smaller than p_bal --> higher price is set by platform
@@ -51,7 +51,7 @@ def main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta, m, p_max, time):
             # Duplicates to drop as we would count the price multiple times for the same ride
             df.drop_duplicates(subset=['start'], keep=False, inplace=True)
             # Only use second half of the df
-            # df.drop(df.head(int(len(df)/2)).index, inplace=True)
+            df.drop(df.head(int(len(df)/2)).index, inplace=True)
             df_result.loc[j, "Price i"] = i
             df_result.loc[j, "Time"] = s.clock
             df_result.loc[j, "Drivers arrived to system"] = s.arrivedDrivers
@@ -67,7 +67,7 @@ def main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta, m, p_max, time):
                                                                          df_result.loc[
                                                                              j, "Driver arrival rate | Theoretic"]
             df_result.loc[j, "Revenue | Agent"] = s.arrivedDrivers / s.clock * df_result.loc[j, "Expected earnings per ride | Agent"]
-            df_result.loc[j, "Revenue | Theoretic"] = Model_Queue.Revenue_dynamic(p_low, p_high, p_bal, mu_0, q_exit, tau,
+            df_result.loc[j, "Revenue | Theoretic"] = Model_Queue.Revenue_dynamic(p_low, i, p_bal, mu_0, q_exit, tau,
                                                                                   lambda_0, shape, gamma, theta)
             # Iterate
             j += 1
@@ -75,10 +75,8 @@ def main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta, m, p_max, time):
     # Check results for all iterations
     df_result.to_excel("result.xlsx")
     # Group multiple simulations m by price i
-    if m != 1:
-        df_ = df_result.groupby(df_result['Price i']).mean()
-    else:
-        df_ = df_result
+    df_ = df_result.groupby(df_result['Price i']).mean()
+
     ### PLOT ###
     Model_Queue.plotDynamicAgentLambda(df_, p_max)
     Model_Queue.plotDynamicAgentRevenue(df_, p_max)

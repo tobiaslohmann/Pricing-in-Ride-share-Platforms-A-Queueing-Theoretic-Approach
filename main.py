@@ -18,15 +18,15 @@ shape = 2                       # Shape GAMMA distribution
 ### Simulation ###
 p_max = 5.1                     # Upper price limit for simulation
 n = 3300                        # Static Pricing | Simulating n matches of passengers and drivers in the system
-m = 1                           # Building the average of m occurrences for every price p
-time = 1500                     # Dynamic Pricing | Time simulation of dynamic pricing
+m = 2                           # Building the average of m occurrences for every price p
+time = 5000                   # Dynamic Pricing | Time simulation of dynamic pricing
 
 if __name__ == '__main__':
     ### Static | Large market limit | Theoretic
-    # static_theoretic.main(mu_0, q_exit, lambda_0, gamma, tau, shape)
+    static_theoretic.main(mu_0, q_exit, lambda_0, gamma, tau, shape)
     ### Static | Large market limit | Agent
-    # static_agent.main(mu_0, q_exit, lambda_0, gamma, tau, shape, n, m, p_max)
+    static_agent.main(mu_0, q_exit, lambda_0, gamma, tau, shape, n, m, p_max)
     # Dynamic | Large market limit | Theoretic
-    # dynamic_theoretic.main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta)
+    dynamic_theoretic.main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta)
     ### Dynamic | Large market limit | Agent                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             namic | Large market limit | Agent
     dynamic_agent.main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta, m, p_max, time)
