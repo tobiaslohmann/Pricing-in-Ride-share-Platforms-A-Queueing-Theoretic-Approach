@@ -22,10 +22,10 @@ time = 1500                     # Dynamic Pricing | Time simulation of dynamic p
 
 if __name__ == '__main__':
     ### Static | Large market limit | Theoretic
-    # static_theoretic.main(mu_0, q_exit, lambda_0, gamma, tau, shape)
+    static_theoretic.main(mu_0, q_exit, lambda_0, gamma, tau, shape)
     ### Static | Large market limit | Agent
-    # static_agent.main(mu_0, q_exit, lambda_0, gamma, tau, shape, n, m, p_max)
-    # Dynnamic | Large market limit | Theoretic
-    # dynamic_theoretic.main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta)
-    ### Dynnamic | Large market limit | Agent
+    static_agent.main(mu_0, q_exit, lambda_0, gamma, tau, shape, n, m, p_max)
+    # Dynamic | Large market limit | Theoretic
+    dynamic_theoretic.main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta)
+    ### Dynamic | Large market limit | Agent
     dynamic_agent.main(mu_0, q_exit, lambda_0, gamma, tau, shape, theta, m, p_max, time)
